@@ -77,7 +77,14 @@ class StreamManager implements \ArrayAccess, \Countable
             // For some reason, PHP loses track of the options associated
             // with the stream during the call to fopen().
             // Therefore, we bind the options back manually.
-            stream_context_set_option($value, $options);
+            //
+            // Also, HHVM has issues when setting an array of options
+            // on a stream rather than a stream context, hence these loops.
+            foreach ($options as $wrapper => $suboptions) {
+                foreach ($suboptions as $optname => $optvalue) {
+                    stream_context_set_option($value, $wrapper, $optname, $optvalue);
+                }
+            }
         }
 
         if (!is_string($offset) || is_numeric($offset)) {

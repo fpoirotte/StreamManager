@@ -42,6 +42,9 @@ class StreamsTest extends TestCase
             // (which won't be a problem for the first padded-message,
             // but will trigger a decoding failure in messages afterward).
             fwrite($stream, (string) ($value + 1) . "  ");
+
+            // We force a flush here, so that the response can be sent
+            // BEFORE the manager closes the stream (on the last message).
         }
 
         if ($value >= 9) {
@@ -51,13 +54,15 @@ class StreamsTest extends TestCase
 
     public function testBidirectionalCommunications()
     {
+        if (!in_array('convert.*', stream_get_filters())) {
+            $this->markTestSkipped('The convert.* stream filters are not available');
+        }
+
         $manager    = new StreamManager();
         $sock       = stream_socket_pair(STREAM_PF_UNIX, STREAM_SOCK_STREAM, STREAM_IPPROTO_IP);
         foreach (array(0, 1) as $i) {
             stream_context_set_option($sock[$i], StreamManager::WRAPPER_NAME, 'readCallback', array($this, 'inc'));
             stream_set_blocking($sock[$i], false);
-            stream_set_read_buffer($sock[$i], 0);
-            stream_set_write_buffer($sock[$i], 0);
         }
 
         $manager['a2b'] = $sock[0];

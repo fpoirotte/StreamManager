@@ -83,7 +83,7 @@ class StreamWrapper implements \Countable
     public function stream_flush()
     {
         // @codingStandardsIgnoreEnd
-        return fflush($this->rawStream);
+        return $this->sendOutput() && fflush($this->rawStream);
     }
 
     // @codingStandardsIgnoreStart
@@ -130,6 +130,13 @@ class StreamWrapper implements \Countable
         // HACK: we use fstat() to pass information about the output buffer
         //       back to the stream manager.
         return array('size' => strlen($this->outputBuffer));
+    }
+
+    // @codingStandardsIgnoreStart
+    public function stream_tell()
+    {
+        // @codingStandardsIgnoreEnd
+        return ftell($this->rawStream);
     }
 
     // @codingStandardsIgnoreStart
