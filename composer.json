@@ -1,0 +1,38 @@
+{
+    "prefer-stable": true,
+    "name": "fpoirotte/stream-manager",
+    "description": "PHP stream manager",
+    "keywords": ["stream", "streams", "filter", "filters"],
+    "homepage": "https://github.com/fpoirotte/StreamManager",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "François Poirotte",
+            "email": "clicky@erebot.net",
+            "role": "lead"
+        }
+    ],
+    "support": {
+        "issues": "https://github.com/fpoirotte/StreamManager/issues",
+        "irc": "irc://irc.iiens.net/Clicky",
+        "source": "https://github.com/fpoirotte/StreamManager"
+    },
+    "require": {
+        "php": ">=5.4"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "*",
+        "squizlabs/php_codesniffer": "*",
+        "erebot/buildenv": "^1.4.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "fpoirotte\\": "src/"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-develop": "1.0.x-dev"
+        }
+    }
+}
