@@ -3,7 +3,7 @@
 use PHPUnit\Framework\TestCase;
 use fpoirotte\StreamManager;
 
-class StreamsTest extends TestCase
+class ManagerTest extends TestCase
 {
     protected $receivedData = array();
     protected $closedStream = array();
