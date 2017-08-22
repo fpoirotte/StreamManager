@@ -3,6 +3,7 @@
 namespace fpoirotte\StreamManager;
 
 use fpoirotte\StreamManager;
+use fpoirotte\StreamManager\EOFException;
 
 class StreamWrapper implements \Countable
 {
@@ -153,6 +154,10 @@ class StreamWrapper implements \Countable
         $data = fread($this->rawStream, $count);
         if (false === $data) {
             return false;
+        }
+
+        if ('' === $data && feof($this->rawStream)) {
+            throw new EOFException();
         }
 
         while (strlen($data) > 0) {

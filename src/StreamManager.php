@@ -140,24 +140,49 @@ class StreamManager implements \ArrayAccess, \Countable
             }
 
             foreach ($r as $name => $stream) {
-                $cb  = feof($stream) ? 'closeCallback' : 'readCallback';
                 $ctx = stream_context_get_options($streams[$name]);
 
-                if (!array_key_exists($cb, $ctx[self::WRAPPER_NAME])) {
-                    throw new \RuntimeException("Invalid $cb");
+                // If the event supposedly says there is
+                // incoming data to read, try to do so.
+                if (!feof($stream)) {
+                    if (!array_key_exists('readCallback', $ctx[self::WRAPPER_NAME])) {
+                        throw new \RuntimeException("Undefined 'readCallback'");
+                    }
+
+                    if (null !== $ctx[self::WRAPPER_NAME]['readCallback']) {
+                        if (!is_callable($ctx[self::WRAPPER_NAME]['readCallback'])) {
+                            throw new \RuntimeException("Invalid 'readCallback'");
+                        }
+
+                        try {
+                            call_user_func($ctx[self::WRAPPER_NAME]['readCallback'], $this, $streams[$name], $name);
+                            continue;
+                        } catch (\fpoirotte\StreamManager\EOFException $e) {
+                            // Catch the exception:
+                            // the closeCallback will be called instead
+                        }
+                    }
                 }
 
-                if (null !== $ctx[self::WRAPPER_NAME][$cb]) {
-                    if (!is_callable($ctx[self::WRAPPER_NAME][$cb])) {
-                        throw new \RuntimeException("Invalid $cb");
-                    }
-                
-                    call_user_func($ctx[self::WRAPPER_NAME]['readCallback'], $this, $streams[$name], $name);
-                } elseif ('closeCallback' === $cb) {
-                    // By default, close the stream upon EOF.
-                    fclose($streams[$name]);
-                    unset($this->streams[$name]);
+                // If EOF had been signaled or no data could be read
+                // (meaning that EOF was reached), call 'closeCallback'.
+                if (!array_key_exists('closeCallback', $ctx[self::WRAPPER_NAME])) {
+                    throw new \RuntimeException("Missing 'closeCallback'");
                 }
+
+                if (null !== $ctx[self::WRAPPER_NAME]['closeCallback']) {
+                    if (!is_callable($ctx[self::WRAPPER_NAME]['closeCallback'])) {
+                        throw new \RuntimeException("Invalid 'closeCallback'");
+                    }
+
+                    call_user_func($ctx[self::WRAPPER_NAME]['closeCallback'], $this, $streams[$name], $name);
+                } else {
+                    // The default behaviour is to simply close the stream
+                    fclose($streams[$name]);
+                }
+
+                // Make sure the stream is not managed anymore
+                unset($this->streams[$name]);
             }
 
             foreach (array_keys($w) as $name) {

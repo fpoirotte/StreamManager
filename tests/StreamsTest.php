@@ -5,9 +5,10 @@ use fpoirotte\StreamManager;
 
 class StreamsTest extends TestCase
 {
-    protected $buffer = array();
+    protected $receivedData = array();
+    protected $closedStream = array();
 
-    public function testSingleStreamAndSingleFilter()
+    public function testSimpleScenario()
     {
         $data = 'Hello world!';
 
@@ -27,14 +28,14 @@ class StreamsTest extends TestCase
         $this->assertSame(str_rot13($data), fread($rawStream, 32));
     }
 
-    public function inc($manager, $stream, $name)
+    public function onDataReceived($manager, $stream, $name)
     {
         $data = fread($stream, 32);
 
-        if (!isset($this->buffer[$name])) {
-            $this->buffer[$name] = array();
+        if (!isset($this->receivedData[$name])) {
+            $this->receivedData[$name] = array();
         }
-        $this->buffer[$name][] = $data;
+        $this->receivedData[$name][] = $data;
 
         $value = (int) $data;
         if ($value < 9) {
@@ -48,11 +49,17 @@ class StreamsTest extends TestCase
         }
 
         if ($value >= 9) {
+            fclose($stream);
             unset($manager[$name]);
         }
     }
 
-    public function testBidirectionalCommunications()
+    public function onStreamClosed($manager, $stream, $name)
+    {
+        $this->closedStream[] = $name;
+    }
+
+    public function testComplexScenario()
     {
         if (!in_array('convert.*', stream_get_filters())) {
             $this->markTestSkipped('The convert.* stream filters are not available');
@@ -61,7 +68,18 @@ class StreamsTest extends TestCase
         $manager    = new StreamManager();
         $sock       = stream_socket_pair(STREAM_PF_UNIX, STREAM_SOCK_STREAM, STREAM_IPPROTO_IP);
         foreach (array(0, 1) as $i) {
-            stream_context_set_option($sock[$i], StreamManager::WRAPPER_NAME, 'readCallback', array($this, 'inc'));
+            stream_context_set_option(
+                $sock[$i],
+                StreamManager::WRAPPER_NAME,
+                'readCallback',
+                array($this, 'onDataReceived')
+            );
+            stream_context_set_option(
+                $sock[$i],
+                StreamManager::WRAPPER_NAME,
+                'closeCallback',
+                array($this, 'onStreamClosed')
+            );
             stream_set_blocking($sock[$i], false);
         }
 
@@ -96,6 +114,7 @@ class StreamsTest extends TestCase
             "b2a" => array('0  ', '2  ', '4  ', '6  ', '8  '),
             "a2b" => array('1  ', '3  ', '5  ', '7  ', '9  '),
         );
-        $this->assertSame($expected, $this->buffer);
+        $this->assertSame($expected, $this->receivedData);
+        $this->assertSame(array('b2a'), $this->closedStream);
     }
 }
