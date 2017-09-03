@@ -1,0 +1,7 @@
+/**
+ * \mainpage
+ *
+ * \section Introduction
+ * This project provides means to handle streams using callback functions.
+ * It supports filtered streams in addition to regular streams.
+ */

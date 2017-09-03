@@ -1,0 +1,5 @@
+/**
+ * \namespace fpoirotte::StreamWrapper
+ * \brief Provides the necessary classes needed to handle (filtered) streams,
+ *        using callback functions.
+ */
