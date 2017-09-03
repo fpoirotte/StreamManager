@@ -22,7 +22,9 @@
     },
     "require-dev": {
         "phpunit/phpunit": "*",
-        "squizlabs/php_codesniffer": "*"
+        "squizlabs/php_codesniffer": "*",
+        "fpoirotte/natives4doxygen": "*",
+        "erebot/buildenv": "*"
     },
     "autoload": {
         "psr-4": {
