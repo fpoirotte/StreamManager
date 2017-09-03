@@ -121,7 +121,7 @@ Each callback will be called with 3 arguments:
 The following code snippet is an example of what a ``closeCallback`` might
 look like:
 
-..  sourcecode:: inline-manager
+..  sourcecode:: inline-php
 
     function onStreamClosed($manager, $stream, $name)
     {

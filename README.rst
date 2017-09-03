@@ -10,10 +10,10 @@ Use `Composer <https://getcomposer.org/>`_ to install this library:
 
     $> php /path/to/composer.phar install fpoirotte/stream-manager
 
-Usage
------
+Documentation
+-------------
 
-TODO
+See http://streammanager.readthedocs.io/
 
 Contributions
 -------------
