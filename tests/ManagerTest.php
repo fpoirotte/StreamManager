@@ -43,9 +43,6 @@ class ManagerTest extends TestCase
             // (which won't be a problem for the first padded-message,
             // but will trigger a decoding failure in messages afterward).
             fwrite($stream, (string) ($value + 1) . "  ");
-
-            // We force a flush here, so that the response can be sent
-            // BEFORE the manager closes the stream (on the last message).
         }
 
         if ($value >= 9) {
@@ -87,7 +84,7 @@ class ManagerTest extends TestCase
         $manager['b2a'] = $sock[1];
 
         // A sends data to B by first applying base64 then rot13,
-        // while B sends data A by first applying rot13 then base64.
+        // while B sends data to A by first applying rot13 then base64.
         stream_filter_append($manager['a2b'], 'convert.base64-encode', STREAM_FILTER_WRITE);
         stream_filter_append($manager['a2b'], 'string.rot13', STREAM_FILTER_WRITE);
 
@@ -107,9 +104,9 @@ class ManagerTest extends TestCase
         $manager->loop();
 
         // "b2a" should have received even numbers from 0 to 9, padded with spaces,
-        // while "a2b" should have received odd number (also padded with spaces).
-        // Also, since "b2a" is the first one to receive a message (sent by "a2b"),
-        // hence the fast that it appears first in the expected output.
+        // while "a2b" should have received odd numbers (also padded with spaces).
+        // Also, since "b2a" is the first one to receive a message,
+        // it will appear first in the expected output.
         $expected = array(
             "b2a" => array('0  ', '2  ', '4  ', '6  ', '8  '),
             "a2b" => array('1  ', '3  ', '5  ', '7  ', '9  '),
