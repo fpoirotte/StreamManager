@@ -5,18 +5,21 @@ namespace fpoirotte;
 class StreamManager implements \ArrayAccess, \Countable
 {
     protected $streams;
+    protected $hasDispatch;
 
     const WRAPPER_NAME  = 'streammanager.wrapper';
     const WRAPPER_CLASS = '\\fpoirotte\\StreamManager\\StreamWrapper';
 
     public function __construct()
     {
-        $this->streams = array();
         if (!in_array(static::WRAPPER_NAME, stream_get_wrappers())) {
             if (false === stream_wrapper_register(static::WRAPPER_NAME, static::WRAPPER_CLASS)) {
                 throw new \RuntimeException('Could not register stream wrapper');
             }
         }
+
+        $this->streams      = array();
+        $this->hasDispatch  = function_exists('pcntl_signal_dispatch');
     }
 
     public function count()
@@ -128,6 +131,11 @@ class StreamManager implements \ArrayAccess, \Countable
             }
 
             $nb = @stream_select($r, $w, $e, null, null);
+
+            if ($this->hasDispatch) {
+                pcntl_signal_dispatch();
+            }
+
             if (false === $nb) {
                 // The call has been interrupted, try again.
                 continue;
